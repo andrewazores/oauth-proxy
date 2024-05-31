@@ -1,6 +1,6 @@
-ARG builder_version=8.9
-ARG runner_version=8.9
-ARG goversion=go1.22.1
+ARG builder_version=8.10
+ARG runner_version=8.10
+ARG goversion=go1.22.3
 
 FROM registry.access.redhat.com/ubi8/ubi:$builder_version AS builder
 ARG goversion
