@@ -1,6 +1,6 @@
 ARG builder_version=8.10
 ARG runner_version=8.10
-ARG goversion=go1.22.6
+ARG goversion=go1.22.8
 ARG user_id=1001
 
 FROM registry.access.redhat.com/ubi8/ubi:$builder_version AS builder
