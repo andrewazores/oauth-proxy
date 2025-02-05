@@ -6,6 +6,14 @@ concurrency:
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+      - master
+      - v[0-9]+
+      - v[0-9]+.[0-9]+
+      - cryostat-v[0-9]+.[0-9]+
+      - go-*
   push:
     branches:
       - main
@@ -13,6 +21,7 @@ on:
       - v[0-9]+
       - v[0-9]+.[0-9]+
       - cryostat-v[0-9]+.[0-9]+
+      - go-*
     tags:
       - '*'
 
@@ -27,9 +36,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
     - name: Install qemu
       continue-on-error: false
+      if: github.event_name != 'pull_request'
       run: |
         sudo apt-get update
         sudo apt-get install -y qemu-user-static
@@ -55,8 +65,8 @@ jobs:
       uses: redhat-actions/buildah-build@v2
       with:
         image: ${{ env.CI_IMG }}
-        archs: amd64, arm64
-        tags: ${{ github.ref_name }} ${{ github.ref == 'refs/heads/main' && 'latest' || '' }} ${{ env.DATE_TAG }} ${{ steps.check-branch.outputs.image-tag }} ${{ steps.check-commit.outputs.image-tag }} ${{ steps.check-commit.outputs.image-tag-patch }} ${{ steps.check-commit.outputs.image-tag-release }}
+        archs: ${{ github.event_name == 'pull_request' && 'amd64' || 'amd64, arm64' }}
+        tags: ${{ github.event_name != 'pull_request' && github.ref_name || '' }} ${{ github.ref == 'refs/heads/main' && 'latest' || '' }} ${{ env.DATE_TAG }} ${{ steps.check-branch.outputs.image-tag }} ${{ steps.check-commit.outputs.image-tag }} ${{ steps.check-commit.outputs.image-tag-patch }} ${{ steps.check-commit.outputs.image-tag-release }}
         containerfiles: |
           ./Containerfile
     - name: Push to quay.io
@@ -68,7 +78,7 @@ jobs:
         registry: ${{ env.CI_REGISTRY }}
         username: ${{ env.CI_USER }}
         password: ${{ secrets.REGISTRY_PASSWORD }}
-      if: ${{ github.repository_owner == 'cryostatio' }}
+      if: ${{ github.repository_owner == 'cryostatio' && github.event_name != 'pull_request' }}
     - name: Print image URL
       run: echo "Image pushed to ${{ steps.push-to-quay.outputs.registry-paths }}"
-      if: ${{ github.repository_owner == 'cryostatio' }}
+      if: ${{ github.repository_owner == 'cryostatio' && github.event_name != 'pull_request' }}
