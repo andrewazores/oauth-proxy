@@ -1,6 +1,6 @@
 module github.com/openshift/oauth-proxy
 
-go 1.22
+go 1.22.0
 
 require (
 	github.com/18F/hmacauth v0.0.0-20151013130326-9232a6386b73
